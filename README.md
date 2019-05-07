@@ -20,6 +20,7 @@ and change default_ip to your receiver's IP Address.
 default_ip = ""
 ```
 
+```
 Command List:
 	power [-h] (status, on, off, toggle)
 	volume [-h] (status, up, down, [0-90])
@@ -37,6 +38,7 @@ Command List:
 		    siriusxm
 		    pandora
 		    ipod
+```
 
 How to use:
 
