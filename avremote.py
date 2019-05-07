@@ -12,7 +12,7 @@ default_ip = ""
 # Default Port
 default_port = "23"
 
-# AV Control Class
+# AVR Control Class
 class AVRController:
 	# Initialize AVControl Object
 	def __init__(self, args):
@@ -22,7 +22,7 @@ class AVRController:
 		self.val = args.val
 		#self.prefixes = ['PW', 'MV', 'MU', 'SI']
 
-	def validateIP(self): # Text for valid IPv4 Address
+	def validateIP(self): # Test for valid IPv4 Address
 		a = self.address.split('.')
 		if len(a) != 4:
 			return False
