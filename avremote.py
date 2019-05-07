@@ -8,7 +8,7 @@ from time import sleep
 # Default IP
 # ex.
 # default_ip = "192.168.0.100"
-default_ip = ""
+default_ip = "192.168.0.4"
 # Default Port
 default_port = "23"
 
@@ -22,49 +22,49 @@ class AVRController:
 		self.val = args.val
 
 		# Command Dictionaries
-		self.prefixes = {'power': 'PW',
-				'volume': 'MV',
-				'mute': 'MU',
-				'source': 'SI'}
+		self.prefixes = {"power": "PW",
+				"volume": "MV",
+				"mute": "MU",
+				"source": "SI"}
 
-		self.commands = {'status': 'status',
-				'toggle': 'toggle',
-				'on': 'PWON\r',
-				'off': 'PWSTANDBY\r',
-				'up': 'MVUP\r',
-				'down': 'MVDOWN\r',
-				'mute on': 'MUON\r',
-				'mute off': 'MUOFF\r',
-				'bluetooth': 'SIBT\r',
-				'tuner': 'SITUNER\r',
-				'aux': 'SIAUX1\r',
-				'iradio': 'SIIRADIO\r',
-				'mplayer': 'SIMPLAY\r',
-				'game': 'SIGAME\r',
-				'dvd': 'SIDVD\r',
-				'bluray': 'SIBD\r',
-				'favorites': 'SIFAVORITES\r',
-				'sirius': 'SISIRIUSXM\r',
-				'pandora': 'SIPANDORA\r',
-				'ipod': 'SIUSB/IPOD'}
+		self.commands = {"status": "status",
+				"toggle": "toggle",
+				"on": "PWON\r",
+				"off": "PWSTANDBY\r",
+				"up": "MVUP\r",
+				"down": "MVDOWN\r",
+				"mute on": "MUON\r",
+				"mute off": "MUOFF\r",
+				"bluetooth": "SIBT\r",
+				"tuner": "SITUNER\r",
+				"aux": "SIAUX1\r",
+				"iradio": "SIIRADIO\r",
+				"mplayer": "SIMPLAY\r",
+				"game": "SIGAME\r",
+				"dvd": "SIDVD\r",
+				"bluray": "SIBD\r",
+				"favorites": "SIFAVORITES\r",
+				"sirius": "SISIRIUSXM\r",
+				"pandora": "SIPANDORA\r",
+				"ipod": "SIUSB/IPOD"}
 
-		self.status_cmds = {'power': 'PW?\r',
-				'volume': 'MV?\r',
-				'mute': 'MU?\r',
-				'source': 'SI?\r'}
+		self.status_cmds = {"power": "PW?\r",
+				"volume": "MV?\r",
+				"mute": "MU?\r",
+				"source": "SI?\r"}
 
 		# Source Input Names Dictionary
-		self.src_names = {'BT': 'Bluetooth',
-				'Tuner': 'Tuner',
-				'AUX1': 'Aux',
-				'IRADIO': 'Internet Radio',
-				'MPLAY': 'Media Player',
-				'GAME': 'Game',
-				'DVD': 'DVD',
-				'BD': 'BluRay',
-				'FAVORITES': 'Favorites',
-				'SIRIUSXM': 'Sirius XM',
-				'USB/IPOD': 'iPod'}
+		self.src_names = {"BT": "Bluetooth",
+				"TUNER": "Tuner",
+				"AUX1": "Aux",
+				"IRADIO": "Internet Radio",
+				"MPLAY": "Media Player",
+				"GAME": "Game",
+				"DVD": "DVD",
+				"BD": "BluRay",
+				"FAVORITES": "Favorites",
+				"SIRIUSXM": "Sirius XM",
+				"USB/IPOD": "iPod"}
 
 	def validateIP(self): # Test for valid IPv4 Address
 		a = self.address.split('.')
@@ -159,9 +159,9 @@ class AVRController:
 		if cmd != "status" and cmd != resp:
 			# Handle Toggle Command
 			if cmd == "toggle":
-				if resp == self.commands['off']:
-					cmd = self.commands['on']
-				else: cmd = self.commands['off']
+				if resp == self.commands["off"]:
+					cmd = self.commands["on"]
+				else: cmd = self.commands["off"]
 			# Send Command
 			self.send_command(s, cmd)
 			# Receive status response
@@ -176,11 +176,11 @@ class AVRController:
 		maxVolume = self.send_command(s, None, True) 
 
 		if cmd != "status":
-			power_state = self.send_command(s, self.status_cmds['power']) # Recieve Power State
-			if power_state == self.commands['on']: # Send command if power state is on 
+			power_state = self.send_command(s, self.status_cmds["power"]) # Receive Power State
+			if power_state == self.commands["on"]: # Send command if power state is on 
 				if cmd != resp: # and command is not equal to response
 					return self.send_command(s, cmd)
-			else: resp = power_state # Power state is STANDBY so return w/o sending command
+			else: resp = self.commands["off"] # Power state is STANDBY so return w/o sending command
 
 		return resp
 
@@ -189,12 +189,12 @@ class AVRController:
 		resp = self.send_command(s, status_cmd)
 
 		if cmd != "status":
-			power_state = self.send_command(s, self.status_cmds['power']) # Recieve Power State
-			if power_state == self.commands['on']: # Send command if power state is on
-				if resp == self.commands['mute on']: # Mute is on
-					return self.send_command(s, self.commands['mute off']) # Toggle it off
-				else: return self.send_command(s, self.commands['mute on']) # Toggle it on
-			else: resp = power_state # Power state is STANDBY so return w/o sending command
+			power_state = self.send_command(s, self.status_cmds["power"]) # Recieve Power State
+			if power_state == self.commands["on"]: # Send command if power state is on
+				if resp == self.commands["mute on"]: # Mute is on
+					return self.send_command(s, self.commands["mute off"]) # Toggle it off
+				else: return self.send_command(s, self.commands["mute on"]) # Toggle it on
+			else: resp = self.commands["off"] # Power state is STANDBY so return w/o sending command
 
 		return resp
 
@@ -203,11 +203,11 @@ class AVRController:
 		resp = self.send_command(s, status_cmd)
 
 		if cmd != "status":
-			power_state = self.send_command(s, self.status_cmds['power']) # Receive Power State
-			if power_state == self.commands['on']: # Send command if power state is on
+			power_state = self.send_command(s, self.status_cmds["power"]) # Receive Power State
+			if power_state == self.commands["on"]: # Send command if power state is on
 				if cmd != resp: # and command is not equal to response
 					return self.send_command(s, cmd)
-			else: resp = power_state # Power state is STANDBY so return w/o sending command
+			else: resp = self.commands["off"] # Power state is STANDBY so return w/o sending command
 
 		return resp
 					
@@ -234,7 +234,7 @@ class AVRController:
 
 		# Parse Source Commands
 		elif self.cmd == "source":
-			return (self.execute_source_command(s, self.commands[self.val], self.status_cmds[self.cmd]), "Sourcce Input:")
+			return (self.execute_source_command(s, self.commands[self.val], self.status_cmds[self.cmd]), "Source Input:")
 		# Parse Custom Commands
 		elif self.cmd == "command":
 			return (self.execute_command("%s\r" % self.val, s), "")
