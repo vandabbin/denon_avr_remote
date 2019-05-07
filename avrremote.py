@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.7
+#!/usr/bin/env python3.6
 # BarryTheButcher Copyright (C) 2019
 # Licensed under GPL version 3
 
