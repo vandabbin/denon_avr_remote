@@ -59,7 +59,9 @@ $ ./avremote.py power status
 # use a different ip or port from the defaults.
 $ ./avremote.py -a 192.168.0.100 -p 23 power status
 
-# The default secondary command for all primary commands is status
+# The default secondary command for all primary commands except mute
+# is status (mute's default is toggle)
+# 
 $ ./avremote.py power
 
 # The default primary command if no commands are given is power
