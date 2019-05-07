@@ -20,6 +20,24 @@ and change default_ip to your receiver's IP Address.
 default_ip = ""
 ```
 
+Command List:
+	power [-h] (status, on, off, toggle)
+	volume [-h] (status, up, down, [0-90])
+	mute [-h] (status, toggle)
+	source [-h] status
+	            bluetooth
+		    tuner
+		    aux
+		    iradio
+		    mplayer
+		    game
+		    dvd
+		    bluray
+		    favorites
+		    siriusxm
+		    pandora
+		    ipod
+
 How to use:
 
 ```
@@ -46,22 +64,4 @@ $ ./avremote.py power
 $ ./avremote.py
 ```
 
-```
-Command List:
-	power [-h] (status, on, off, toggle)
-	volume [-h] (status, up, down, [0-90])
-	mute [-h] (status, toggle)
-	source [-h] status
-	            bluetooth
-		    tuner
-		    aux
-		    iradio
-		    mplayer
-		    game
-		    dvd
-		    bluray
-		    favorites
-		    siriusxm
-		    pandora
-		    ipod
-```
+
