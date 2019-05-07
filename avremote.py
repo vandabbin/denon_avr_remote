@@ -236,6 +236,8 @@ class AVRController:
 			elif resp == "SIRIUSXM": resp = "Sirius XM"
 			elif resp == "PANDORA": resp = "Pandora"
 			elif resp == "USB/IPOD": resp = "iPod"
+		if resp == "STANDBY":
+			msg = "Power State:"
 		return "%s %s" % (msg, resp)
 
 	def run(self):
