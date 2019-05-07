@@ -280,6 +280,10 @@ def set_default_subparser(self, name, args=None):
 			break
 		if arg in ['-v', '--version']: # version if no subparser
 			break
+		if arg in ['-a', '--address']: # address requires subparser to be specified
+			break
+		if arg in ['-p', '--port']: # port requires subparser to be specified
+			break
 	else:
 		for x in self._subparsers._actions:
 			if not isinstance(x, argparse._SubParsersAction):
