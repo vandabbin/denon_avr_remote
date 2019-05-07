@@ -8,7 +8,7 @@ from time import sleep
 # Default IP
 # ex.
 # default_ip = "192.168.0.100"
-default_ip = "192.168.0.4"
+default_ip = ""
 # Default Port
 default_port = "23"
 
@@ -106,6 +106,7 @@ class AVRController:
 	def connect(self): 
 		# Initialize Socket Stream
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		s.settimeout(2.0)
 
 		try:
 			# Connect Socket Stream
@@ -150,7 +151,7 @@ class AVRController:
 		except Exception as e:
 			print(e)
 
-		return "error"
+		return "Error"
 	
 	def execute_power_command(self, s, cmd, status_cmd):
 		# Send status command and receive response
@@ -241,6 +242,9 @@ class AVRController:
 
 	# Formate message and response for output to stdout
 	def parse_response(self, resp, msg): 
+		if resp == "Error":
+			return resp
+
 		resp = resp[2:].rstrip()
 		if self.cmd == "volume":
 			if len(resp) == 3:
