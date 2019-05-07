@@ -124,3 +124,6 @@ dmypy.json
 
 # Old Version
 *.old
+
+# New Version
+*.new
