@@ -112,6 +112,8 @@ class AVRController:
 			# Connect Socket Stream
 			s.connect((self.address, int(self.port)))
 			return (True, s)
+		except KeyboardInterrupt:
+			print('')
 		except Exception as e:
 			print(e)
 
@@ -123,6 +125,8 @@ class AVRController:
 			s.shutdown(socket.SHUT_RDWR)
 			s.close()
 			return True
+		except KeyboardInterrupt:
+			print('')
 		except Exception as e:
 			print(e)
 
@@ -148,6 +152,8 @@ class AVRController:
 				return resp
 			# Receive response without sending command
 			return str(s.recv(64), 'utf-8')
+		except KeyboardInterrupt:
+			print('')
 		except Exception as e:
 			print(e)
 
@@ -272,14 +278,14 @@ class AVRController:
 			print("Denon AVR Remote")
 			# Connect to Receiver
 			connected,sock = self.connect()
-			if not connected:
-				print("There was a problem connecting to the receiver.")
-			else:
+			if connected:
 				# Parse and Execute Command
 				resp,msg = self.parse_command(sock)
 				disconnected = self.disconnect(sock) # Disconnect from receiver
 				# Print message with parsed response
 				print("[%s] %s" % (self.address, self.parse_response(resp, msg)))
+			else:
+				print("There was a problem connecting to the receiver.")
 
 # Set Default Subparser
 def set_default_subparser(self, name, args=None):
