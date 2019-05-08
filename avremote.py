@@ -2,7 +2,7 @@
 # BarryTheButcher Copyright (C) 2019
 # Licensed under GPL version 3
 
-import argparse, sys, socket, re
+import argparse, sys, socket
 from time import sleep
 
 # Default IP
