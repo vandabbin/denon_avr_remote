@@ -106,7 +106,7 @@ class AVRController:
 	def connect(self): 
 		# Initialize Socket Stream
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		s.settimeout(2.0)
+		s.settimeout(5.0)
 
 		try:
 			# Connect Socket Stream
