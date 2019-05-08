@@ -132,36 +132,39 @@ class AVRController:
 
 		return False
 
-	def send_command(self, s, cmd, receive_only=False):
+	def send_command(self, s, cmd):
+		try:
+			# Send Command through Socket Stream
+			s.send(cmd.encode("utf-8"))
+			return True
+		except KeyboardInterrupt:
+			print('')
+		except Exception as e:
+			print(e)
+
+		return False
+
+	def receive_status(self, s, cmd, receive_only=False):
 		try:
 			if not receive_only: # Send Command and Receive response
-				"""
-				Send command until response prefix is the same as command prefix
-				unless response is MVMAX which is always the wrong response in this
-				scenario.
-				I would like to handle the responses from the Receiver better
-				however I don't know enough about the receiver's communications
-				to implement a better method. If someone else does please let me
-				know!!
-				"""
 				resp=''
 				while resp[:2] != cmd[:2] or resp[:5] == "MVMAX":
 					# Send Command through Socket Stream
 					s.send(cmd.encode("utf-8"))
-					resp = str(s.recv(64), 'utf-8')
+					resp = str(s.recv(16), 'utf-8')
 				return resp
 			# Receive response without sending command
-			return str(s.recv(64), 'utf-8')
+			return str(s.recv(16), 'utf-8')
 		except KeyboardInterrupt:
 			print('')
 		except Exception as e:
 			print(e)
 
 		return "Error"
-	
-	def execute_power_command(self, s, cmd, status_cmd):
+
+	def send_power_command(self, s, cmd, status_cmd):
 		# Send status command and receive response
-		resp = self.send_command(s, status_cmd)
+		resp = self.receive_status(s, status_cmd)
 
 		if cmd != "status" and cmd != resp:
 			# Handle Toggle Command
@@ -170,61 +173,67 @@ class AVRController:
 					cmd = self.commands["on"]
 				else: cmd = self.commands["off"]
 			# Send Command
-			self.send_command(s, cmd)
-			# Receive status response
-			return self.send_command(s, status_cmd)
+			if self.send_command(s, cmd):
+				return self.receive_status(s, status_cmd)
+			else: return "Error"
 
 		return resp
 			
-	def execute_volume_command(self, s, cmd, status_cmd):
+	def send_volume_command(self, s, cmd, status_cmd):
 		# Send status command and receive response
-		resp = self.send_command(s, status_cmd)
+		resp = self.receive_status(s, status_cmd)
 		# Receive second status response containing max volume
-		maxVolume = self.send_command(s, None, True) 
+		maxVolume = self.receive_status(s, None, True) 
 
-		if cmd != "status":
-			power_state = self.send_command(s, self.status_cmds["power"]) # Receive Power State
-			if power_state == self.commands["on"]: # Send command if power state is on 
-				if cmd != resp: # and command is not equal to response
-					return self.send_command(s, cmd)
-			else: resp = self.commands["off"] # Power state is STANDBY so return w/o sending command
+		if cmd != "status" or resp == "Error":
+			power_state = self.receive_status(s, self.status_cmds["power"]) # Receive Power State
+			if power_state == self.commands["on"]:  # Send command if power state is on 
+				if cmd != resp:			# and command is not equal to response
+					if self.send_command(s, cmd):
+						return self.receive_status(s, status_cmd)
+					else: return "Error"
+			else: resp = power_state # Power state is STANDBY or Error so return w/o sending command
 
 		return resp
 
-	def execute_mute_command(self, s, cmd, status_cmd):
+	def send_mute_command(self, s, cmd, status_cmd):
 		# Send status command and receive response
-		resp = self.send_command(s, status_cmd)
+		resp = self.receive_status(s, status_cmd)
 
-		if cmd != "status":
-			power_state = self.send_command(s, self.status_cmds["power"]) # Recieve Power State
+		if cmd != "status" or resp == "Error":
+			power_state = self.receive_status(s, self.status_cmds["power"]) # Recieve Power State
 			if power_state == self.commands["on"]: # Send command if power state is on
 				if resp == self.commands["mute on"]: # Mute is on
-					return self.send_command(s, self.commands["mute off"]) # Toggle it off
-				else: return self.send_command(s, self.commands["mute on"]) # Toggle it on
-			else: resp = self.commands["off"] # Power state is STANDBY so return w/o sending command
+					cmd = "mute off"
+				else: 
+					cmd = "mute on"
+
+				if self.send_command(s, self.commands[cmd]): # Toggle it on
+					return self.receive_status(s, status_cmd)
+				else: return "Error"
+			else: resp = power_state # Power state is STANDBY or Error so return w/o sending command
 
 		return resp
 
-	def execute_source_command(self, s, cmd, status_cmd):
+	def send_source_command(self, s, cmd, status_cmd):
 		# Send status command and receive response
-		resp = self.send_command(s, status_cmd)
+		resp = self.receive_status(s, status_cmd)
 
-		if cmd != "status":
-			power_state = self.send_command(s, self.status_cmds["power"]) # Receive Power State
-			if power_state == self.commands["on"]: # Send command if power state is on
-				if cmd != resp: # and command is not equal to response
-					return self.send_command(s, cmd)
-			else: resp = self.commands["off"] # Power state is STANDBY so return w/o sending command
+		if cmd != "status" or resp == "Error":
+			power_state = self.receive_status(s, self.status_cmds["power"]) # Receive Power State
+			if power_state == self.commands["on"]:  # Send command if power state is on
+				if cmd != resp:			# and command is not equal to response
+					if self.send_command(s, cmd):
+						return self.receive_status(s, status_cmd)
+					else: return "Error"
+			else: resp = power_state # Power state is STANDBY or Error so return w/o sending command
 
 		return resp
-					
-	def execute_command(self, s, cmd): # Send command w/o processing (for testing)
-		return self.send_command(s, cmd)
-	
+
 	def parse_command(self, s):
 		# Parse Power Commands
 		if self.cmd == "power":
-			return (self.execute_power_command(s, self.commands[self.val], self.status_cmds[self.cmd]), "Power State:")
+			return (self.send_power_command(s, self.commands[self.val], self.status_cmds[self.cmd]), "Power State:")
 
 		# Parse Volume Commands
 		elif self.cmd == "volume":
@@ -233,25 +242,29 @@ class AVRController:
 			else:
 				self.val = int(self.val)
 				cmd = "%s%02d\r" % (self.prefixes[self.cmd], self.val)
-			return (self.execute_volume_command(s, cmd, self.status_cmds[self.cmd]), "Volume Level:")
+			return (self.send_volume_command(s, cmd, self.status_cmds[self.cmd]), "Volume Level:")
 
 		# Parse Mute Commands
 		elif self.cmd == "mute":
-			return (self.execute_mute_command(s, self.commands[self.val], self.status_cmds[self.cmd]), "Mute State:")
+			return (self.send_mute_command(s, self.commands[self.val], self.status_cmds[self.cmd]), "Mute State:")
 
 		# Parse Source Commands
 		elif self.cmd == "source":
-			return (self.execute_source_command(s, self.commands[self.val], self.status_cmds[self.cmd]), "Source Input:")
-		# Parse Custom Commands
-		elif self.cmd == "command":
-			return (self.execute_command("%s\r" % self.val, s), "")
+			return (self.send_source_command(s, self.commands[self.val], self.status_cmds[self.cmd]), "Source Input:")
 
 	# Formate message and response for output to stdout
 	def parse_response(self, resp, msg): 
 		if resp == "Error":
 			return resp
 
-		resp = resp[2:].rstrip()
+		x = resp.rstrip().split('\r')
+		if len(x) > 1:
+			for i in x:
+				if i in self.commands:
+					resp = i[2:]
+					break
+		else: resp = x[0][2:]
+
 		if self.cmd == "volume":
 			if len(resp) == 3:
 				resp = "%s.%s" % (resp[:2], resp[2:])
@@ -415,11 +428,6 @@ subparser_cmd.add_argument('val',
 				'siriusxm',
 				'pandora',
 				'ipod'])
-
-subparser_cmd = subparser.add_parser('command')
-subparser_cmd.add_argument('val',
-			action='store',
-			nargs='?')
 
 parser.set_default_subparser('power') # Set Power as the default Subparser
 args = parser.parse_args()
