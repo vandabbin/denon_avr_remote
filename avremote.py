@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Denon AVR Remote for CLI
 # BarryTheButcher Copyright (C) 2019
 # Licensed under GPL version 3
 
@@ -331,7 +332,7 @@ class AVRController:
         """
         valid = False
         try:
-            if sys.stdin.isatty():
+            if sys.stdin.isatty(): # Check if running interactively
                 while not valid:
                     valid = self.validate_connection_info(True)
             else:
