@@ -69,5 +69,3 @@ $ ./avremote.py power
 # the script. You must include the primary command if you wish to use them.
 $ ./avremote.py
 ```
-
-
