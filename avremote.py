@@ -410,7 +410,7 @@ parser.add_argument(
 parser.add_argument(
     '--version', '-v',
     action='version',
-    version='%(prog)s v0.1beta Copyright \xa9 2019 Barry Van Deerlin')
+    version='%(prog)s v0.1beta Copyright (C) 2019 Barry Van Deerlin')
 
 parser.add_argument(
     '--address', '-a',
