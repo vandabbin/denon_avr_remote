@@ -257,7 +257,7 @@ class AVRController:
             if power_state == self.COMMANDS['on']:
                 # Toggle mute on or off
                 cmd = self.toggle(resp,
-                                  self.COMMANDS['m_on',
+                                  self.COMMANDS['m_on'],
                                   self.COMMANDS['m_off'])
                 if self.send_command(sock, cmd):
                     return self.recv_status(sock, status_cmd)
