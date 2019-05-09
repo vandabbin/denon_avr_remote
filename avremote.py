@@ -187,7 +187,7 @@ class AVRController:
             return True
         return False
 
-    def receive_status(self, sock, cmd, receive_only=False):
+    def recv_status(self, sock, cmd, receive_only=False):
         '''
         Try to send a status command and return the response.
         '''
@@ -217,14 +217,14 @@ class AVRController:
         '''
         Send a power command and return the response.
         '''
-        resp = self.receive_status(sock, status_cmd)
+        resp = self.recv_status(sock, status_cmd)
         if cmd != 'status' and cmd != resp:
             if cmd == 'toggle': # Toggle power on or off
                 cmd = self.toggle(resp,
                                   self.COMMANDS['on'],
                                   self.COMMANDS['off'])
             if self.send_command(sock, cmd): # Send Command
-                return self.receive_status(sock, status_cmd)
+                return self.recv_status(sock, status_cmd)
             else:
                 return 'self.ERRORS[4]'
         return resp
@@ -233,14 +233,14 @@ class AVRController:
         '''
         Send a volume command and return the response.
         '''
-        resp = self.receive_status(sock, status_cmd)
-        maxVolume = self.receive_status(sock, None, True)
+        resp = self.recv_status(sock, status_cmd)
+        maxVolume = self.recv_status(sock, None, True)
         if cmd != 'status' or resp == 'self.ERRORS[3]':
-            power_state = self.receive_status(sock, self.STATUS_CMDS['power'])
+            power_state = self.recv_status(sock, self.STATUS_CMDS['power'])
             if power_state == self.COMMANDS['on']:
                 if cmd != resp:
                     if self.send_command(sock, cmd):
-                        return self.receive_status(sock, status_cmd)
+                        return self.recv_status(sock, status_cmd)
                     else:
                         return 'self.ERRORS[4]'
             else:
@@ -251,16 +251,16 @@ class AVRController:
         '''
         Send a mute command and return the response.
         '''
-        resp = self.receive_status(sock, status_cmd)
+        resp = self.recv_status(sock, status_cmd)
         if cmd != 'status' or resp == 'self.ERRORS[3]':
-            power_state = self.receive_status(sock, self.STATUS_CMDS['power'])
+            power_state = self.recv_status(sock, self.STATUS_CMDS['power'])
             if power_state == self.COMMANDS['on']:
                 # Toggle mute on or off
                 cmd = self.toggle(resp,
                                   self.COMMANDS['mute on'],
                                   self.COMMANDS['mute off'])
                 if self.send_command(sock, cmd):
-                    return self.receive_status(sock, status_cmd)
+                    return self.recv_status(sock, status_cmd)
                 else:
                     return 'self.ERRORS[4]'
             else:
@@ -271,13 +271,13 @@ class AVRController:
         '''
         Send a source command and return the response.
         '''
-        resp = self.receive_status(sock, status_cmd)
+        resp = self.recv_status(sock, status_cmd)
         if cmd != 'status' or resp == 'self.ERRORS[3]':
-            power_state = self.receive_status(sock, self.STATUS_CMDS['power'])
+            power_state = self.recv_status(sock, self.STATUS_CMDS['power'])
             if power_state == self.COMMANDS['on']:
                 if cmd != resp:
                     if self.send_command(sock, cmd):
-                        return self.receive_status(sock, status_cmd)
+                        return self.recv_status(sock, status_cmd)
                     else:
                         return 'self.ERRORS[4]'
             else:
