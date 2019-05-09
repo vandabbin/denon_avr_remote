@@ -30,18 +30,18 @@ default_port = '23'
 class AVRController:
 
     def __init__(self, args):
-        """
+        '''
         Initialize AVRController Object.
         args: is a Namespace object containing the following attributes:
             address: is the IPv4 address of the AVR.
             port: is the port to communicate on.
             cmd: is the type of command to perform.
-            value: is the command action to be performed.
-        """
+            action: is the command action to be performed.
+        '''
         self.ADDRESS = args.address
         self.PORT = args.port
         self.CMD = args.cmd
-        self.VALUE = args.value
+        self.ACTION = args.action
 
         # Command Dictionaries
         self.PREFIXES = {'power': 'PW',
@@ -88,11 +88,29 @@ class AVRController:
                           'SIRIUSXM': 'Sirius XM',
                           'USB/IPOD': 'iPod'}
 
+        # Message Labels
+        self.LABELS = {'power': 'Power State:',
+                       'volume': 'Volume Level:',
+                       'mute': 'Mute State:',
+                       'source': 'Source Input:'}
+
+        # Functions for sending commands
+        self.SEND = {'power': self.send_power_command,
+                     'volume': self.send_volume_command,
+                     'mute': self.send_mute_command,
+                     'source': self.send_source_command}
+
+        # Error Messages
+        self.ERRORS = {'1': 'Error while Parsing Arguments',
+                       '2': 'Error while connecting to the receiver',
+                       '3': 'Error while receiving status',
+                       '4': 'Error while sending command'}
+
     def validate_ip(self):
-        """
+        '''
         Test if self.ADDRESS is a valid IPv4 address
         and return True/False.
-        """
+        '''
         a = self.ADDRESS.split('.')
         if len(a) != 4:
             return False
@@ -105,12 +123,12 @@ class AVRController:
         return True
 
     def validate_connection_info(self, interactive=False):
-        """
+        '''
         Test that necessary connection data is present and
         return True/False. If it isn't and script is being
         run interactively, then ask for it.
         interactive: if set then script is being run interactively.
-        """
+        '''
         if self.ADDRESS == '':
             print('IP Address is not set')
             if interactive:
@@ -136,10 +154,10 @@ class AVRController:
         return False
 
     def connect(self):
-        """
+        '''
         Create a socket connection and try to connect to it.
         Return socket object unless an exception is thrown.
-        """
+        '''
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(5.0)
         try:
@@ -151,16 +169,16 @@ class AVRController:
         return None
 
     def disconnect(self, sock):
-        """
+        '''
         Shutdown and close socket connection.
-        """
+        '''
         sock.shutdown(socket.SHUT_RDWR)
         sock.close()
 
     def send_command(self, sock, cmd):
-        """
+        '''
         Try to send command via socket and return True/False.
-        """
+        '''
         try:
             sock.send(cmd.encode('utf-8'))
         except Exception as e:
@@ -170,9 +188,9 @@ class AVRController:
         return False
 
     def receive_status(self, sock, cmd, receive_only=False):
-        """
+        '''
         Try to send a status command and return the response.
-        """
+        '''
         resp=''
         try:
             if not receive_only:
@@ -185,131 +203,110 @@ class AVRController:
             print(e)
         else:
             return resp
-        return 'err1'
+        return 'self.ERRORS[3]'
+
+    def toggle(self, status, a, b):
+        '''
+        Compare status to a and return b if status equals a
+        '''
+        if status == a:
+            return b
+        return a
 
     def send_power_command(self, sock, cmd, status_cmd):
-        """
+        '''
         Send a power command and return the response.
-        """
+        '''
         resp = self.receive_status(sock, status_cmd)
         if cmd != 'status' and cmd != resp:
-            if cmd == 'toggle': # Handle Toggle Command
-                if resp == self.COMMANDS['off']:
-                    cmd = self.COMMANDS['on']
-                else:
-                    cmd = self.COMMANDS['off']
+            if cmd == 'toggle': # Toggle power on or off
+                cmd = self.toggle(resp,
+                                  self.COMMANDS['on'],
+                                  self.COMMANDS['off'])
             if self.send_command(sock, cmd): # Send Command
                 return self.receive_status(sock, status_cmd)
             else:
-                return 'err2'
+                return 'self.ERRORS[4]'
         return resp
 
     def send_volume_command(self, sock, cmd, status_cmd):
-        """
+        '''
         Send a volume command and return the response.
-        """
+        '''
         resp = self.receive_status(sock, status_cmd)
         maxVolume = self.receive_status(sock, None, True)
-        if cmd != 'status' or resp == 'err1':
+        if cmd != 'status' or resp == 'self.ERRORS[3]':
             power_state = self.receive_status(sock, self.STATUS_CMDS['power'])
             if power_state == self.COMMANDS['on']:
                 if cmd != resp:
                     if self.send_command(sock, cmd):
                         return self.receive_status(sock, status_cmd)
                     else:
-                        return 'err2'
+                        return 'self.ERRORS[4]'
             else:
                 resp = power_state
         return resp
 
     def send_mute_command(self, sock, cmd, status_cmd):
-        """
+        '''
         Send a mute command and return the response.
-        """
+        '''
         resp = self.receive_status(sock, status_cmd)
-        if cmd != 'status' or resp == 'err1':
+        if cmd != 'status' or resp == 'self.ERRORS[3]':
             power_state = self.receive_status(sock, self.STATUS_CMDS['power'])
             if power_state == self.COMMANDS['on']:
-                if resp == self.COMMANDS['mute on']:
-                    cmd = 'mute off'
-                else:
-                    cmd = 'mute on'
-                if self.send_command(sock, self.COMMANDS[cmd]):
+                # Toggle mute on or off
+                cmd = self.toggle(resp,
+                                  self.COMMANDS['mute on'],
+                                  self.COMMANDS['mute off'])
+                if self.send_command(sock, cmd):
                     return self.receive_status(sock, status_cmd)
                 else:
-                    return 'err2'
+                    return 'self.ERRORS[4]'
             else:
                 resp = power_state
         return resp
 
     def send_source_command(self, sock, cmd, status_cmd):
-        """
+        '''
         Send a source command and return the response.
-        """
+        '''
         resp = self.receive_status(sock, status_cmd)
-        if cmd != 'status' or resp == 'err1':
+        if cmd != 'status' or resp == 'self.ERRORS[3]':
             power_state = self.receive_status(sock, self.STATUS_CMDS['power'])
             if power_state == self.COMMANDS['on']:
                 if cmd != resp:
                     if self.send_command(sock, cmd):
                         return self.receive_status(sock, status_cmd)
                     else:
-                        return 'err2'
+                        return 'self.ERRORS[4]'
             else:
                 resp = power_state
         return resp
 
     def parse_command(self, sock):
-        """
+        '''
         Parse self.CMD and send command.
         Returns a tuple of message label and response.
-        """
-        # Parse Power Commands
-        if self.CMD == 'power':
-            return ('Power State:',
-                    self.send_power_command(
-                        sock,
-                        self.COMMANDS[self.VALUE],
-                        self.STATUS_CMDS[self.CMD]))
-
-        # Parse Volume Commands
-        elif self.CMD == 'volume':
-            if self.VALUE in self.COMMANDS:
-                cmd = self.COMMANDS[self.VALUE]
-            else:
-                self.VALUE = int(self.VALUE)
-                cmd = '%s%02d\r' % (self.PREFIXES[self.CMD], self.VALUE)
-            return ('Volume Level:',
-                    self.send_volume_command(
-                        sock,
-                        cmd,
-                        self.STATUS_CMDS[self.CMD]))
-
-        # Parse Mute Commands
-        elif self.CMD == 'mute':
-            return ('Mute State:',
-                    self.send_mute_command(
-                        sock,
-                        self.COMMANDS[self.VALUE],
-                        self.STATUS_CMDS[self.CMD]))
-
-        # Parse Source Commands
-        elif self.CMD == 'source':
-            return ('Source Input:',
-                    self.send_source_command(
-                        sock,
-                        self.COMMANDS[self.VALUE],
-                        self.STATUS_CMDS[self.CMD]))
+        '''
+        if self.ACTION not in self.COMMANDS:
+            cmd = '%s%02d\r' % (self.PREFIXES[self.CMD], int(self.ACTION))
+            return (self.LABELS[self.CMD],
+                    self.SEND[self.CMD](sock,
+                                        cmd,
+                                        self.STATUS_CMDS[self.CMD]))
+        return (self.LABELS[self.CMD],
+                self.SEND[self.CMD](sock,
+                                    self.COMMANDS[self.ACTION],
+                                    self.STATUS_CMDS[self.CMD]))
 
     def parse_response(self, resp, msg):
-        """
+        '''
         Format message label and response for output to stdout
         and return string.
-        """
-        if resp == 'err1':
-            return '[%s] Error while receiving status' % self.ADDRESS
-        if resp == 'err2':
-            return '[%s] Error while sending command' % self.ADDRESS
+        '''
+        if resp in self.ERRORS:
+            return '[%s] %s' % (self.ADDRESS, resp)
 
         x = resp.rstrip().split('\r')
         if len(x) > 1:
@@ -322,18 +319,24 @@ class AVRController:
 
         if self.CMD == 'volume':
             if len(resp) == 3:
-                resp = '%s.%s' % (resp[:2], resp[2:])
+                resp = '%d.%d' % (int(resp[:2]), int(resp[2:]))
+            else:
+                resp = int(resp)
         elif self.CMD == 'source':
             if resp in self.SRC_NAMES:
                 resp = self.SRC_NAMES[resp]
         if resp == 'STANDBY':
-            msg = 'Power State:'
+            msg = self.LABELS['power']
         return '[%s] %s %s' % (self.ADDRESS, msg, resp)
 
     def run(self):
-        """
+        '''
         Start the controller.
-        """
+        '''
+        if self.CMD is None or self.ACTION is None:
+            print(self.ERRORS[1])
+            sys.exit(1)
+
         valid = False
         try:
             if sys.stdin.isatty(): # Check if running interactively
@@ -352,14 +355,14 @@ class AVRController:
                     # Print message with parsed response
                     print(self.parse_response(resp, msg))
                 else:
-                    print('[None] Error while connecting to the receiver.')
+                    print('[%s] %s' % sock, self.ERRORS[2])
         except KeyboardInterrupt:
             print('')
             sys.exit(1)
 
 
 def set_default_subparser(self, name, args=None):
-    """
+    '''
     Default subparser selection.
     Call after setup, just before parse_args()
     name: is the name of the subparser to call by default
@@ -367,7 +370,7 @@ def set_default_subparser(self, name, args=None):
 
     Tested with 2.7, 3.2, 3.3, 3.4, 3.6, 3.7
     It works with 2.6 assuming argparse is installed
-    """
+    '''
     subparser_found = False
     for arg in sys.argv[1:]:
         if arg in ['-h', '--help']:  # global help if no subparser
@@ -429,7 +432,7 @@ parser.add_argument(
 subparser = parser.add_subparsers(dest='cmd')
 subparser_cmd = subparser.add_parser('power')
 subparser_cmd.add_argument(
-    'value',
+    'action',
     type=str.lower,
     action='store',
     default='status',
@@ -450,7 +453,7 @@ volume_choices.insert(0, 'up')
 volume_choices.insert(0, 'status')
 
 subparser_cmd.add_argument(
-    'value',
+    'action',
     type=str.lower,
     action='store',
     default='status',
@@ -461,7 +464,7 @@ subparser_cmd.add_argument(
 
 subparser_cmd = subparser.add_parser('mute')
 subparser_cmd.add_argument(
-    'value',
+    'action',
     type=str.lower,
     action='store',
     default='toggle',
@@ -471,7 +474,7 @@ subparser_cmd.add_argument(
 
 subparser_cmd = subparser.add_parser('source')
 subparser_cmd.add_argument(
-    'value',
+    'action',
     type=str.lower,
     action='store',
     default='status',
@@ -494,10 +497,6 @@ subparser_cmd.add_argument(
 # Set power as the default subparser and parse args
 parser.set_default_subparser('power')
 args = parser.parse_args()
-
-if args.cmd is None or args.value is None:
-    print('Error while Parsing Arguments')
-    sys.exit(1)
 
 # Initialize Controller
 controller = AVRController(args)
