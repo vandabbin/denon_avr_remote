@@ -55,8 +55,8 @@ class AVRController:
                          'off': 'PWSTANDBY\r',
                          'up': 'MVUP\r',
                          'down': 'MVDOWN\r',
-                         'mute on': 'MUON\r',
-                         'mute off': 'MUOFF\r',
+                         'm_on': 'MUON\r',
+                         'm_off': 'MUOFF\r',
                          'bluetooth': 'SIBT\r',
                          'tuner': 'SITUNER\r',
                          'aux': 'SIAUX1\r',
@@ -101,7 +101,7 @@ class AVRController:
                      'source': self.send_source_command}
 
         # Error Messages
-        self.ERRORS = {'1': 'Error while Parsing Arguments',
+        self.ERRORS = {'1': 'Error while parsing arguments',
                        '2': 'Error while connecting to the receiver',
                        '3': 'Error while receiving status',
                        '4': 'Error while sending command'}
@@ -257,8 +257,8 @@ class AVRController:
             if power_state == self.COMMANDS['on']:
                 # Toggle mute on or off
                 cmd = self.toggle(resp,
-                                  self.COMMANDS['mute on'],
-                                  self.COMMANDS['mute off'])
+                                  self.COMMANDS['m_on',
+                                  self.COMMANDS['m_off'])
                 if self.send_command(sock, cmd):
                     return self.recv_status(sock, status_cmd)
                 else:
@@ -329,7 +329,7 @@ class AVRController:
             msg = self.LABELS['power']
         return '[%s] %s %s' % (self.ADDRESS, msg, resp)
 
-    def run(self):
+    def main(self):
         '''
         Start the controller.
         '''
@@ -501,4 +501,4 @@ args = parser.parse_args()
 # Initialize Controller
 controller = AVRController(args)
 # Run Controller
-controller.run()
+controller.main()
