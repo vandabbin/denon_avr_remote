@@ -68,7 +68,7 @@ class AVRController:
                          'favorites': 'SIFAVORITES\r',
                          'sirius': 'SISIRIUSXM\r',
                          'pandora': 'SIPANDORA\r',
-                         'ipod': 'SIUSB/IPOD'}
+                         'ipod': 'SIUSB/IPOD\r'}
 
         self.STATUS_CMDS = {'power': 'PW?\r',
                             'volume': 'MV?\r',
