@@ -16,22 +16,21 @@ default_ip = ''
 default_port = '23'
 
 
-# AVR Control Class
 class AVRController:
 
     def __init__(self, args):
         """
-        Initialize AVRController Object
-        args: is a Namespace object containing the following attributes
-            address: is the IPv4 address of the AVR
+        Initialize AVRController Object.
+        args: is a Namespace object containing the following attributes:
+            address: is the IPv4 address of the AVR.
             port: is the port to communicate on.
-            cmd: is the type of command to perform
-            val: is the command action to be performed.
+            cmd: is the type of command to perform.
+            value: is the command action to be performed.
         """
         self.ADDRESS = args.address
         self.PORT = args.port
         self.CMD = args.cmd
-        self.VAL = args.val
+        self.VALUE = args.value
 
         # Command Dictionaries
         self.PREFIXES = {'power': 'PW',
@@ -94,7 +93,6 @@ class AVRController:
                 return False
         return True
 
-
     def validate_connection_info(self, interactive=False):
         """
         Test that necessary connection data is present and
@@ -129,8 +127,7 @@ class AVRController:
     def connect(self):
         """
         Create a socket connection and try to connect to it.
-        Return a tuple containing the connection result and
-        socket object.
+        Return socket object unless an exception is thrown.
         """
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(5.0)
@@ -139,21 +136,15 @@ class AVRController:
         except Exception as e:
             print(e)
         else:
-            return (True, sock)
-        return (False, None)
+            return sock
+        return None
 
     def disconnect(self, sock):
         """
-        Shutdown and close socket connection then return True/False.
+        Shutdown and close socket connection.
         """
-        try:
-            sock.shutdown(socket.SHUT_RDWR)
-            sock.close()
-        except Exception as e:
-            print(e)
-        else:
-            return True
-        return False
+        sock.shutdown(socket.SHUT_RDWR)
+        sock.close()
 
     def send_command(self, sock, cmd):
         """
@@ -183,7 +174,7 @@ class AVRController:
             print(e)
         else:
             return resp
-        return 'Error'
+        return 'err1'
 
     def send_power_command(self, sock, cmd, status_cmd):
         """
@@ -199,7 +190,7 @@ class AVRController:
             if self.send_command(sock, cmd): # Send Command
                 return self.receive_status(sock, status_cmd)
             else:
-                return 'Error'
+                return 'err2'
         return resp
 
     def send_volume_command(self, sock, cmd, status_cmd):
@@ -208,14 +199,14 @@ class AVRController:
         """
         resp = self.receive_status(sock, status_cmd)
         maxVolume = self.receive_status(sock, None, True)
-        if cmd != 'status' or resp == 'Error':
+        if cmd != 'status' or resp == 'err1':
             power_state = self.receive_status(sock, self.STATUS_CMDS['power'])
             if power_state == self.COMMANDS['on']:
                 if cmd != resp:
                     if self.send_command(sock, cmd):
                         return self.receive_status(sock, status_cmd)
                     else:
-                        return 'Error'
+                        return 'err2'
             else:
                 resp = power_state
         return resp
@@ -225,7 +216,7 @@ class AVRController:
         Send a mute command and return the response.
         """
         resp = self.receive_status(sock, status_cmd)
-        if cmd != 'status' or resp == 'Error':
+        if cmd != 'status' or resp == 'err1':
             power_state = self.receive_status(sock, self.STATUS_CMDS['power'])
             if power_state == self.COMMANDS['on']:
                 if resp == self.COMMANDS['mute on']:
@@ -235,7 +226,7 @@ class AVRController:
                 if self.send_command(sock, self.COMMANDS[cmd]):
                     return self.receive_status(sock, status_cmd)
                 else:
-                    return 'Error'
+                    return 'err2'
             else:
                 resp = power_state
         return resp
@@ -245,14 +236,14 @@ class AVRController:
         Send a source command and return the response.
         """
         resp = self.receive_status(sock, status_cmd)
-        if cmd != 'status' or resp == 'Error':
+        if cmd != 'status' or resp == 'err1':
             power_state = self.receive_status(sock, self.STATUS_CMDS['power'])
             if power_state == self.COMMANDS['on']:
                 if cmd != resp:
                     if self.send_command(sock, cmd):
                         return self.receive_status(sock, status_cmd)
                     else:
-                        return 'Error'
+                        return 'err2'
             else:
                 resp = power_state
         return resp
@@ -267,16 +258,16 @@ class AVRController:
             return ('Power State:',
                     self.send_power_command(
                         sock,
-                        self.COMMANDS[self.VAL],
+                        self.COMMANDS[self.VALUE],
                         self.STATUS_CMDS[self.CMD]))
 
         # Parse Volume Commands
         elif self.CMD == 'volume':
-            if self.VAL in self.COMMANDS:
-                cmd = self.COMMANDS[self.VAL]
+            if self.VALUE in self.COMMANDS:
+                cmd = self.COMMANDS[self.VALUE]
             else:
-                self.VAL = int(self.VAL)
-                cmd = '%s%02d\r' % (self.PREFIXES[self.CMD], self.VAL)
+                self.VALUE = int(self.VALUE)
+                cmd = '%s%02d\r' % (self.PREFIXES[self.CMD], self.VALUE)
             return ('Volume Level:',
                     self.send_volume_command(
                         sock,
@@ -288,7 +279,7 @@ class AVRController:
             return ('Mute State:',
                     self.send_mute_command(
                         sock,
-                        self.COMMANDS[self.VAL],
+                        self.COMMANDS[self.VALUE],
                         self.STATUS_CMDS[self.CMD]))
 
         # Parse Source Commands
@@ -296,7 +287,7 @@ class AVRController:
             return ('Source Input:',
                     self.send_source_command(
                         sock,
-                        self.COMMANDS[self.VAL],
+                        self.COMMANDS[self.VALUE],
                         self.STATUS_CMDS[self.CMD]))
 
     def parse_response(self, resp, msg):
@@ -304,8 +295,10 @@ class AVRController:
         Format message label and response for output to stdout
         and return string.
         """
-        if resp == 'Error':
-            return resp
+        if resp == 'err1':
+            return '[%s] Error while receiving status' % self.ADDRESS
+        if resp == 'err2':
+            return '[%s] Error while sending command' % self.ADDRESS
 
         x = resp.rstrip().split('\r')
         if len(x) > 1:
@@ -338,25 +331,26 @@ class AVRController:
             else:
                 valid = self.validate_connection_info()
             if valid:
-                #print('Denon AVR Remote')
-                # Connect to Receiver
-                connected,sock = self.connect()
-                if connected:
-                    # Parse and Execute Command
+                #print('denon avr remote')
+                # Connect to receiver
+                sock = self.connect()
+                if sock is not None:
+                    # Parse and execute command
                     msg,resp = self.parse_command(sock)
-                    disconnected = self.disconnect(sock) # Disconnect from receiver
+                    self.disconnect(sock)
                     # Print message with parsed response
                     print(self.parse_response(resp, msg))
                 else:
-                    print('There was a problem connecting to the receiver.')
+                    print('[None] Error while connecting to the receiver.')
         except KeyboardInterrupt:
             print('')
-            exit(1)
+            sys.exit(1)
 
 
 def set_default_subparser(self, name, args=None):
     """
-    Default subparser selection. Call after setup, just before parse_args()
+    Default subparser selection.
+    Call after setup, just before parse_args()
     name: is the name of the subparser to call by default
     args: if set is the argument list handed to parse_args()
 
@@ -380,7 +374,7 @@ def set_default_subparser(self, name, args=None):
             for sp_name in x._name_parser_map.keys():
                 if sp_name in sys.argv[1:]:
                     subparser_found = True
-                if sp_name == name: # check existance of default parser
+                if sp_name == name: # Check existance of default parser
                     existing_default = True
         if not subparser_found:
             # Insert default in first position, this implies no
@@ -424,7 +418,7 @@ parser.add_argument(
 subparser = parser.add_subparsers(dest='cmd')
 subparser_cmd = subparser.add_parser('power')
 subparser_cmd.add_argument(
-    'val',
+    'value',
     type=str.lower,
     action='store',
     default='status',
@@ -445,7 +439,7 @@ volume_choices.insert(0, 'up')
 volume_choices.insert(0, 'status')
 
 subparser_cmd.add_argument(
-    'val',
+    'value',
     type=str.lower,
     action='store',
     default='status',
@@ -456,7 +450,7 @@ subparser_cmd.add_argument(
 
 subparser_cmd = subparser.add_parser('mute')
 subparser_cmd.add_argument(
-    'val',
+    'value',
     type=str.lower,
     action='store',
     default='toggle',
@@ -466,7 +460,7 @@ subparser_cmd.add_argument(
 
 subparser_cmd = subparser.add_parser('source')
 subparser_cmd.add_argument(
-    'val',
+    'value',
     type=str.lower,
     action='store',
     default='status',
@@ -490,10 +484,11 @@ subparser_cmd.add_argument(
 parser.set_default_subparser('power')
 args = parser.parse_args()
 
-if args.cmd is None or args.val is None:
-    print('Error Parsing Arguments')
-    exit(1)
+if args.cmd is None or args.value is None:
+    print('Error while Parsing Arguments')
+    sys.exit(1)
 
+# Initialize Controller
 controller = AVRController(args)
 # Run Controller
 controller.run()
