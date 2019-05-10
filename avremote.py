@@ -19,11 +19,10 @@ import socket
 import argparse
 from time import sleep
 
-# Default IP
+# Default IP and Port
 # ex.
 # default_ip = '192.168.0.100'
 default_ip = ''
-# Default Port
 default_port = '23'
 
 
@@ -39,6 +38,7 @@ class AVRController:
             cmd: is the type of command to perform.
             action: is the command action to be performed.
         '''
+        # Connection and Requested Command information
         self.ADDRESS = args.address
         self.PORT = args.port
         self.CMD = args.cmd
@@ -166,9 +166,7 @@ class AVRController:
             return sock
 
     def disconnect(self, sock):
-        '''
-        Shutdown and close socket connection.
-        '''
+        '''Shutdown and close socket connection.'''
         try:
             sock.shutdown(socket.SHUT_RDWR)
             sock.close()
@@ -176,9 +174,7 @@ class AVRController:
             print(e)
 
     def send_command(self, sock, cmd):
-        '''
-        Try to send command via socket and return True/False.
-        '''
+        '''Try to send command via socket and return True/False.'''
         try:
             sock.send('{0}\r'.format(cmd).encode('utf-8'))
         except Exception as e:
@@ -188,9 +184,7 @@ class AVRController:
         return False
 
     def recv_status(self, sock, cmd, receive_only=False):
-        '''
-        Try to send a status command and return the response.
-        '''
+        '''Try to send a status command and return the response.'''
         resp=''
         try:
             if not receive_only:
@@ -202,15 +196,12 @@ class AVRController:
         except Exception as e:
             print(e)
         else:
-            return resp.rstrip()
+            return self.split(resp)
         return self.ERRORS['2']
 
     def split(self, r):
-        '''
-        Split a response at carriage returns and return
-        the correct one
-        '''
-        x = r.split('\r')
+        '''Split a response at carriage returns and return the correct one'''
+        x = r.rstrip().split('\r')
         if len(x) > 1:
             for i in x:
                 if i in self.CODES.values():
@@ -218,41 +209,35 @@ class AVRController:
         return r
 
     def toggle(self, status, a, b):
-        '''
-        Compare status to a and return b if status equals a
-        '''
+        '''Compare status to a and return b if status equals a'''
         if status == a:
             return b
         return a
 
     def send_power_command(self, sock, cmd, status_cmd):
-        '''
-        Send a power command and return the response.
-        '''
-        resp = self.split(self.recv_status(sock, status_cmd))
+        '''Send a power command and return the response.'''
+        resp = self.recv_status(sock, status_cmd)
         if cmd != 'status' and cmd != resp:
             if cmd == 'toggle': # Toggle power on or off
                 cmd = self.toggle(resp,
                                   self.CODES['on'],
                                   self.CODES['off'])
             if self.send_command(sock, cmd): # Send Command
-                return self.split(self.recv_status(sock, status_cmd))
+                return self.recv_status(sock, status_cmd)
             else:
                 return self.ERRORS['3']
         return resp
 
     def send_volume_command(self, sock, cmd, status_cmd):
-        '''
-        Send a volume command and return the response.
-        '''
-        resp = self.split(self.recv_status(sock, status_cmd))
+        '''Send a volume command and return the response.'''
+        resp = self.recv_status(sock, status_cmd)
         maxVolume = self.recv_status(sock, None, True)
         if cmd != 'status' or resp != self.ERRORS['2']:
             power_state = self.recv_status(sock, self.SCODES['power'])
             if power_state == self.CODES['on']:
                 if cmd != resp:
                     if self.send_command(sock, cmd):
-                        return self.split(self.recv_status(sock, status_cmd))
+                        return self.recv_status(sock, status_cmd)
                     else:
                         return self.ERRORS['3']
             else:
@@ -260,10 +245,8 @@ class AVRController:
         return resp
 
     def send_mute_command(self, sock, cmd, status_cmd):
-        '''
-        Send a mute command and return the response.
-        '''
-        resp = self.split(self.recv_status(sock, status_cmd))
+        '''Send a mute command and return the response.'''
+        resp = self.recv_status(sock, status_cmd)
         if cmd != 'status' or resp != self.ERRORS['2']:
             power_state = self.recv_status(sock, self.SCODES['power'])
             if power_state == self.CODES['on']:
@@ -272,7 +255,7 @@ class AVRController:
                                   self.CODES['m_on'],
                                   self.CODES['m_off'])
                 if self.send_command(sock, cmd):
-                    return self.split(self.recv_status(sock, status_cmd))
+                    return self.recv_status(sock, status_cmd)
                 else:
                     return self.ERRORS['3']
             else:
@@ -280,17 +263,14 @@ class AVRController:
         return resp
 
     def send_source_command(self, sock, cmd, status_cmd):
-        '''
-        Send a source command and return the response.
-        '''
-        resp = self.split(self.recv_status(sock, status_cmd))
+        '''Send a source command and return the response.'''
+        resp = self.recv_status(sock, status_cmd)
         if cmd != 'status' or resp != self.ERRORS['2']:
-            print(cmd)
             power_state = self.recv_status(sock, self.SCODES['power'])
             if power_state == self.CODES['on']:
                 if cmd != resp:
                     if self.send_command(sock, cmd):
-                        return self.split(self.recv_status(sock, status_cmd))
+                        return self.recv_status(sock, status_cmd)
                     else:
                         return self.ERRORS['3']
             else:
@@ -336,9 +316,7 @@ class AVRController:
         return '[%s] %s %s' % (self.ADDRESS, msg, resp)
 
     def main(self):
-        '''
-        Start the controller.
-        '''
+        '''Start the controller instance.'''
         valid = False
         try:
             if sys.stdin.isatty(): # Check if running interactively
@@ -406,6 +384,7 @@ argparse.ArgumentParser.set_default_subparser = set_default_subparser
 parser = argparse.ArgumentParser(prog='avremote',
                                  description='Denon AVR Remote',
                                  add_help=False)
+
 parser.add_argument(
     '--help', '-h',
     action='help',
@@ -501,7 +480,6 @@ if args.cmd is None or args.action is None:
             print('Error while parsing arguments')
             sys.exit(1)
 
-# Initialize Controller
+# Initialize and Run Controller
 controller = AVRController(args)
-# Run Controller
 controller.main()
