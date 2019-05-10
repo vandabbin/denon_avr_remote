@@ -19,11 +19,17 @@ import socket
 import argparse
 from time import sleep
 
-# Default IP and Port
+# Default Connection Info
 # ex.
 # default_ip = '192.168.0.100'
 default_ip = ''
 default_port = '23'
+# Default Commands
+default_subparser = 'power'
+default_power_cmd = 'status'
+default_volume_cmd = 'status'
+default_mute_cmd = 'toggle'
+default_source_cmd = 'status'
 
 
 class AVRController:
@@ -416,8 +422,8 @@ subparser_cmd.add_argument(
     'action',
     type=str.lower,
     action='store',
-    default='status',
-    const='status',
+    default=default_power_cmd,
+    const=default_power_cmd,
     nargs='?',
     choices=['status', 'on', 'off', 'toggle'])
 
@@ -434,8 +440,8 @@ subparser_cmd.add_argument(
     'action',
     type=str.lower,
     action='store',
-    default='status',
-    const='status',
+    default=default_volume_cmd,
+    const=default_volume_cmd,
     nargs='?',
     choices=volume_choices,
     metavar='status, up, down, [0-90]')
@@ -445,8 +451,8 @@ subparser_cmd.add_argument(
     'action',
     type=str.lower,
     action='store',
-    default='toggle',
-    const='toggle',
+    default=default_mute_cmd,
+    const=default_mute_cmd,
     nargs='?',
     choices=['status', 'toggle'])
 
@@ -455,8 +461,8 @@ subparser_cmd.add_argument(
     'action',
     type=str.lower,
     action='store',
-    default='status',
-    const='status',
+    default=default_source_cmd,
+    const=default_source_cmd,
     nargs='?',
     choices=['status',
              'bluetooth',
@@ -473,7 +479,7 @@ subparser_cmd.add_argument(
              'ipod'])
 
 # Set power as the default subparser and parse args
-parser.set_default_subparser('power')
+parser.set_default_subparser(default_subparser)
 args = parser.parse_args()
 
 if args.cmd is None or args.action is None:
