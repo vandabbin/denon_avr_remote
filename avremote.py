@@ -313,7 +313,7 @@ class AVRController:
         Format message label and response for output to stdout
         and return string.
         '''
-        if resp in self.ERRORS:
+        if resp in self.ERRORS.values():
             return '[%s] %s' % (self.ADDRESS, resp)
 
         resp = resp[2:]
