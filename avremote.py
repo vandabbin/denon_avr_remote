@@ -320,7 +320,7 @@ class AVRController:
         if self.CMD == 'volume':
             if len(resp) == 3:
                 resp = '%d.%d' % (int(resp[:2]), int(resp[2:]))
-            else:
+            elif resp.isdigit():
                 resp = int(resp)
         elif self.CMD == 'source':
             if resp in self.SRC_NAMES:
@@ -345,7 +345,7 @@ class AVRController:
             else:
                 valid = self.validate_connection_info()
             if valid:
-                #print('denon avr remote')
+                #print('Denon AVR Remote')
                 # Connect to receiver
                 sock = self.connect()
                 if sock is not None:
@@ -442,11 +442,8 @@ subparser_cmd.add_argument(
 
 subparser_cmd = subparser.add_parser('volume')
 volume_choices = list(range(91))
-
-x=0
-while x < len(volume_choices):
-    volume_choices[x] = str(volume_choices[x])
-    x += 1
+for i, choice in enumerate(volume_choices):
+    volume_choices[i] = str(choice)
 
 volume_choices.insert(0, 'down')
 volume_choices.insert(0, 'up')
