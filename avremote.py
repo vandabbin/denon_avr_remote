@@ -22,7 +22,7 @@ from time import sleep
 # Default IP
 # ex.
 # default_ip = '192.168.0.100'
-default_ip = '192.168.0.4'
+default_ip = ''
 # Default Port
 default_port = '23'
 
@@ -49,31 +49,31 @@ class AVRController:
                          'mute': 'MU',
                          'source': 'SI'}
 
-        self.COMMANDS = {'status': 'status',
-                         'toggle': 'toggle',
-                         'on': 'PWON',
-                         'off': 'PWSTANDBY',
-                         'up': 'MVUP',
-                         'down': 'MVDOWN',
-                         'm_on': 'MUON',
-                         'm_off': 'MUOFF',
-                         'bluetooth': 'SIBT',
-                         'tuner': 'SITUNER',
-                         'aux': 'SIAUX1',
-                         'iradio': 'SIIRADIO',
-                         'mplayer': 'SIMPLAY',
-                         'game': 'SIGAME',
-                         'dvd': 'SIDVD',
-                         'bluray': 'SIBD',
-                         'favorites': 'SIFAVORITES',
-                         'sirius': 'SISIRIUSXM',
-                         'pandora': 'SIPANDORA',
-                         'ipod': 'SIUSB/IPOD'}
+        self.CODES = {'status': 'status',
+                      'toggle': 'toggle',
+                      'on': 'PWON',
+                      'off': 'PWSTANDBY',
+                      'up': 'MVUP',
+                      'down': 'MVDOWN',
+                      'm_on': 'MUON',
+                      'm_off': 'MUOFF',
+                      'bluetooth': 'SIBT',
+                      'tuner': 'SITUNER',
+                      'aux': 'SIAUX1',
+                      'iradio': 'SIIRADIO',
+                      'mplayer': 'SIMPLAY',
+                      'game': 'SIGAME',
+                      'dvd': 'SIDVD',
+                      'bluray': 'SIBD',
+                      'favorites': 'SIFAVORITES',
+                      'sirius': 'SISIRIUSXM',
+                      'pandora': 'SIPANDORA',
+                      'ipod': 'SIUSB/IPOD'}
 
-        self.STATUS_CMDS = {'power': 'PW?',
-                            'volume': 'MV?',
-                            'mute': 'MU?',
-                            'source': 'SI?'}
+        self.SCODES = {'power': 'PW?',
+                       'volume': 'MV?',
+                       'mute': 'MU?',
+                       'source': 'SI?'}
 
         # Source Input Names Dictionary
         self.SRC_NAMES = {'BT': 'Bluetooth',
@@ -210,7 +210,7 @@ class AVRController:
         x = r.split('\r')
         if len(x) > 1:
             for i in x:
-                if i in self.COMMANDS.values():
+                if i in self.CODES.values():
                     return i
         return r
 
@@ -230,8 +230,8 @@ class AVRController:
         if cmd != 'status' and cmd != resp:
             if cmd == 'toggle': # Toggle power on or off
                 cmd = self.toggle(resp,
-                                  self.COMMANDS['on'],
-                                  self.COMMANDS['off'])
+                                  self.CODES['on'],
+                                  self.CODES['off'])
             if self.send_command(sock, cmd): # Send Command
                 return self.split(self.recv_status(sock, status_cmd))
             else:
@@ -245,8 +245,8 @@ class AVRController:
         resp = self.split(self.recv_status(sock, status_cmd))
         maxVolume = self.recv_status(sock, None, True)
         if cmd != 'status' or resp == self.ERRORS['3']:
-            power_state = self.recv_status(sock, self.STATUS_CMDS['power'])
-            if power_state == self.COMMANDS['on']:
+            power_state = self.recv_status(sock, self.SCODES['power'])
+            if power_state == self.CODES['on']:
                 if cmd != resp:
                     if self.send_command(sock, cmd):
                         return self.split(self.recv_status(sock, status_cmd))
@@ -262,12 +262,12 @@ class AVRController:
         '''
         resp = self.split(self.recv_status(sock, status_cmd))
         if cmd != 'status' or resp == self.ERRORS['3']:
-            power_state = self.recv_status(sock, self.STATUS_CMDS['power'])
-            if power_state == self.COMMANDS['on']:
+            power_state = self.recv_status(sock, self.SCODES['power'])
+            if power_state == self.CODES['on']:
                 # Toggle mute on or off
                 cmd = self.toggle(resp,
-                                  self.COMMANDS['m_on'],
-                                  self.COMMANDS['m_off'])
+                                  self.CODES['m_on'],
+                                  self.CODES['m_off'])
                 if self.send_command(sock, cmd):
                     return self.split(self.recv_status(sock, status_cmd))
                 else:
@@ -282,8 +282,8 @@ class AVRController:
         '''
         resp = self.split(self.recv_status(sock, status_cmd))
         if cmd != 'status' or resp == self.ERRORS['3']:
-            power_state = self.recv_status(sock, self.STATUS_CMDS['power'])
-            if power_state == self.COMMANDS['on']:
+            power_state = self.recv_status(sock, self.SCODES['power'])
+            if power_state == self.CODES['on']:
                 if cmd != resp:
                     if self.send_command(sock, cmd):
                         return self.split(self.recv_status(sock, status_cmd))
@@ -298,16 +298,16 @@ class AVRController:
         Parse self.CMD and send command.
         Returns a tuple of message label and response.
         '''
-        if self.ACTION not in self.COMMANDS:
+        if self.ACTION not in self.CODES:
             cmd = '%s%02d' % (self.PREFIXES[self.CMD], int(self.ACTION))
             return (self.LABELS[self.CMD],
                     self.SEND[self.CMD](sock,
                                         cmd,
-                                        self.STATUS_CMDS[self.CMD]))
+                                        self.SCODES[self.CMD]))
         return (self.LABELS[self.CMD],
                 self.SEND[self.CMD](sock,
-                                    self.COMMANDS[self.ACTION],
-                                    self.STATUS_CMDS[self.CMD]))
+                                    self.CODES[self.ACTION],
+                                    self.SCODES[self.CMD]))
 
     def parse_response(self, resp, msg):
         '''
