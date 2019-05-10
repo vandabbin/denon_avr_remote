@@ -22,7 +22,7 @@ from time import sleep
 # Default IP and Port
 # ex.
 # default_ip = '192.168.0.100'
-default_ip = ''
+default_ip = '192.168.0.4'
 default_port = '23'
 
 
@@ -206,7 +206,7 @@ class AVRController:
             for i in x:
                 if i in self.CODES.values():
                     return i
-        return r
+        return x[0]
 
     def toggle(self, status, a, b):
         '''Compare status to a and return b if status equals a'''
@@ -265,7 +265,7 @@ class AVRController:
     def send_source_command(self, sock, cmd, status_cmd):
         '''Send a source command and return the response.'''
         resp = self.recv_status(sock, status_cmd)
-        if cmd != 'status' or resp != self.ERRORS['2']:
+        if cmd != 'status' and resp != self.ERRORS['2']:
             power_state = self.recv_status(sock, self.SCODES['power'])
             if power_state == self.CODES['on']:
                 if cmd != resp:
