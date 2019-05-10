@@ -32,7 +32,8 @@ class AVRController:
     def __init__(self, args):
         '''
         Initialize AVRController Object.
-        args: is a Namespace object containing the following attributes:
+        args: is a Namespace object derived from Argparse
+        containing the following attributes:
             address: is the IPv4 address of the AVR.
             port: is the port to communicate on.
             cmd: is the type of command to perform.
@@ -168,8 +169,11 @@ class AVRController:
         '''
         Shutdown and close socket connection.
         '''
-        sock.shutdown(socket.SHUT_RDWR)
-        sock.close()
+        try:
+            sock.shutdown(socket.SHUT_RDWR)
+            sock.close()
+        except Exception as e:
+            print(e)
 
     def send_command(self, sock, cmd):
         '''
@@ -309,13 +313,14 @@ class AVRController:
                                     self.CODES[self.ACTION],
                                     self.SCODES[self.CMD]))
 
-    def parse_response(self, resp, msg):
+    def parse_response(self, msg, resp):
         '''
         Format message label and response for output to stdout
         and return string.
         '''
         if resp in self.ERRORS.values():
-            return '[%s] %s' % (self.ADDRESS, resp)
+            print('[%s] %s' % (self.ADDRESS, resp))
+            sys.exit(1)
 
         resp = resp[2:]
         if self.CMD == 'volume':
@@ -347,12 +352,12 @@ class AVRController:
                 sock = self.connect()
                 if sock is not None:
                     # Parse and execute command
-                    msg,resp = self.parse_command(sock)
-                    self.disconnect(sock)
                     # Print message with parsed response
-                    print(self.parse_response(resp, msg))
+                    print(self.parse_response(*self.parse_command(sock)))
+                    self.disconnect(sock)
                 else:
                     print('[%s] %s' % (sock, self.ERRORS['1']))
+                    sys.exit(1)
         except KeyboardInterrupt:
             print('')
             sys.exit(1)
