@@ -334,10 +334,6 @@ class AVRController:
         '''
         Start the controller.
         '''
-        #if self.CMD is None or self.ACTION is None:
-        #    print(self.ERRORS['1'])
-        #    sys.exit(1)
-
         valid = False
         try:
             if sys.stdin.isatty(): # Check if running interactively
