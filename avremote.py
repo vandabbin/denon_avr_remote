@@ -22,7 +22,7 @@ from time import sleep
 # Default IP and Port
 # ex.
 # default_ip = '192.168.0.100'
-default_ip = '192.168.0.4'
+default_ip = ''
 default_port = '23'
 
 
