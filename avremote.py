@@ -232,7 +232,7 @@ class AVRController:
         '''Send a volume command and return the response.'''
         resp = self.recv_status(sock, status_cmd)
         maxVolume = self.recv_status(sock, None, True)
-        if cmd != 'status' or resp != self.ERRORS['2']:
+        if cmd != 'status' and resp != self.ERRORS['2']:
             power_state = self.recv_status(sock, self.SCODES['power'])
             if power_state == self.CODES['on']:
                 if cmd != resp:
@@ -247,7 +247,7 @@ class AVRController:
     def send_mute_command(self, sock, cmd, status_cmd):
         '''Send a mute command and return the response.'''
         resp = self.recv_status(sock, status_cmd)
-        if cmd != 'status' or resp != self.ERRORS['2']:
+        if cmd != 'status' and resp != self.ERRORS['2']:
             power_state = self.recv_status(sock, self.SCODES['power'])
             if power_state == self.CODES['on']:
                 # Toggle mute on or off
