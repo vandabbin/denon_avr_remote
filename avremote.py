@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # vim:set foldenable foldmethod=marker sw=4
-# License Info                                                          {{{1
+# License Info                                                           {{{1
 # Denon AVR Remote for CLI
 # Copyright (C) 2019  Barry Van Deerlin
 # This program is free software: you can redistribute it and/or modify
@@ -16,18 +16,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-# Module Imports                                                        {{{1
+# Module Imports                                                         {{{1
 import sys
 import socket
 import argparse
 from time import sleep
 
-# Default Connection Info                                               {{{1
+# Default Connection Info                                                {{{1
 # ex.
 # default_ip = '192.168.0.100'
 default_ip = ''
 default_port = '23'
-# Default Commands                                                      {{{1
+# Default Commands                                                       {{{1
 default_subparser = 'power'
 default_power_cmd = 'status'
 default_volume_cmd = 'status'
@@ -35,11 +35,11 @@ default_mute_cmd = 'toggle'
 default_source_cmd = 'status'
 default_mode_cmd = 'status'
 
-# Denon Class                                                           {{{1
+# Denon Class                                                            {{{1
 class Denon:
 
-    ### Dictionaries ###                                                {{{2
-    # Command Codes                                                     {{{3
+    #### Dictionaries ####                                               {{{2
+    # Command Codes                                                      {{{3
     codes = {'status': 'status',
              'toggle': 'toggle',
              'on': 'PWON',
@@ -67,14 +67,14 @@ class Denon:
              'rock': 'MSROCK ARENA',
              'jazz': 'MSJAZZ CLUB'}
 
-    # Status Command Codes                                              {{{3
+    # Status Command Codes                                               {{{3
     scodes = {'power': 'PW?',
               'volume': 'MV?',
               'mute': 'MU?',
               'source': 'SI?',
               'mode': 'MS?'}
 
-    # Source Input Names                                                {{{3
+    # Source Input Names                                                 {{{3
     src_names = {'BT': 'Bluetooth',
                  'TUNER': 'Tuner',
                  'AUX1': 'Aux',
@@ -87,7 +87,7 @@ class Denon:
                  'SIRIUSXM': 'Sirius XM',
                  'USB/IPOD': 'iPod'}
 
-    # Sound Mode Names                                                  {{{3
+    # Sound Mode Names                                                   {{{3
     mode_names = {'DOLBY SURROUND': 'Dolby',
                   'STEREO': 'Stereo',
                   'MCH STEREO': 'MStereo',
@@ -95,14 +95,14 @@ class Denon:
                   'ROCK ARENA': 'Rock',
                   'JAZZ CLUB': 'Jazz'}
 
-    # Message Labels                                                    {{{3
+    # Message Labels                                                     {{{3
     labels = {'power': 'Power State:',
               'volume': 'Volume Level:',
               'mute': 'Mute State:',
               'source': 'Source Input:',
               'mode': 'Sound Mode:'}
 
-    # Error Messages                                                    {{{3
+    # Error Messages                                                     {{{3
     errors = {'1': 'Error while parsing arguments',
               '2': 'Error while connecting to the receiver',
               '3': 'Error while receiving status',
