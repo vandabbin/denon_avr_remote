@@ -27,6 +27,7 @@ from time import sleep
 # default_ip = '192.168.0.100'
 default_ip = ''
 default_port = '23'
+
 # Default Commands                                                       {{{1
 default_subparser = 'power'
 default_power_cmd = 'status'
