@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# vim:set foldenable foldmethod=marker
+# vim:set foldenable foldmethod=marker sw=4
 # License Info                                                          {{{1
 # Denon AVR Remote for CLI
 # Copyright (C) 2019  Barry Van Deerlin
