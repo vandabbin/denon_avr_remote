@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# License                                                               {{{1
+# vim:fdm=marker
+# License Info                                                          {{{1
 # Denon AVR Remote for CLI
 # Copyright (C) 2019  Barry Van Deerlin
 # This program is free software: you can redistribute it and/or modify
@@ -14,8 +15,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-#
-# vim:fdm=marker
 
 # Module Imports                                                        {{{1
 import sys
