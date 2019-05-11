@@ -449,7 +449,7 @@ subparser_cmd.add_argument(
     const=default_volume_cmd,
     nargs='?',
     choices=volume_choices,
-    metavar='status, up, down, [0-90]')
+    metavar='{status, up, down, [0-90]}')
 
 # Add mute subparser                                                     {{{3
 subparser_cmd = subparser.add_parser('mute')
