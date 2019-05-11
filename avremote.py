@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# vim:set foldenable foldmethod=marker sw=4
+# vim: set foldenable:foldmethod=marker:sts=4:ts=8:sw=4:
 # License Info                                                           {{{1
 # Denon AVR Remote for CLI
 # Copyright (C) 2019  Barry Van Deerlin
@@ -104,10 +104,10 @@ class Denon:
               'mode': 'Sound Mode:'}
 
     # Error Messages                                                     {{{3
-    errors = {'1': 'Error while parsing arguments',
-              '2': 'Error while connecting to the receiver',
-              '3': 'Error while receiving status',
-              '4': 'Error while sending command'}
+    errors = {1: 'Error while parsing arguments',
+              2: 'Error while connecting to the receiver',
+              3: 'Error while receiving status',
+              4: 'Error while sending command'}
 
     # Initialize Denon Object                                            {{{2
     def __init__(self, args):
@@ -223,7 +223,7 @@ class Denon:
             print(e)
         else:
             return self.split(resp)
-        return self.errors['3']
+        return self.errors[3]
 
     # Split a response by carriage return                                {{{2
     def split(self, r):
@@ -246,7 +246,7 @@ class Denon:
     def send_command(self, sock, cmd, status_cmd):
         '''Send a command to receiver and return response.'''
         resp = self.recv_status(sock, status_cmd)
-        if cmd != 'status' and cmd != resp and resp != self.errors['3']:
+        if cmd != 'status' and cmd != resp and resp != self.errors[3]:
             pwr_cmd = False
             mute_cmd = False
             if status_cmd[:2] == "PW":
@@ -259,16 +259,18 @@ class Denon:
                 power_state = self.recv_status(sock, self.scodes['power'])
             else:
                 power_state = self.recv_status(sock, self.scodes['power'])
+
             if pwr_cmd or mute_cmd:
                 if cmd == 'toggle':
                     cmd  = self.toggle(resp,
                                        self.codes[toggle_types[0]],
                                        self.codes[toggle_types[1]])
+
             if pwr_cmd or power_state == self.codes['on']:
                 if self.send(sock, cmd):
                     return self.recv_status(sock, status_cmd)
                 else:
-                    return self.errors['4']
+                    return self.errors[4]
             else:
                 return power_state
         return resp
@@ -339,11 +341,11 @@ class Denon:
                     print(self.parse_response(*self.parse_command(sock)))
                     self.disconnect(sock)
                 else:
-                    print('[{}] {}'.format(sock, self.errors['2']))
+                    print('[{}] {}'.format(sock, self.errors[2]))
                     sys.exit(1)
         except KeyboardInterrupt:
             print('')
-            sys.exit(1)
+            sys.exit(130)
 
 
 # Set Default Subparser                                                  {{{1
@@ -383,6 +385,7 @@ def set_default_subparser(self, name, args=None):
                 sys.argv.insert(1, name)
             else:
                 args.insert(0, name)
+
 
 # Set up ArgParser                                                       {{{1
 argparse.ArgumentParser.set_default_subparser = set_default_subparser
@@ -428,7 +431,6 @@ subparser_cmd.add_argument(
     type=str.lower,
     action='store',
     default=default_power_cmd,
-    const=default_power_cmd,
     nargs='?',
     choices=['status', 'on', 'off', 'toggle'])
 
@@ -447,7 +449,6 @@ subparser_cmd.add_argument(
     type=str.lower,
     action='store',
     default=default_volume_cmd,
-    const=default_volume_cmd,
     nargs='?',
     choices=volume_choices,
     metavar='{status, up, down, [0-90]}')
@@ -459,7 +460,6 @@ subparser_cmd.add_argument(
     type=str.lower,
     action='store',
     default=default_mute_cmd,
-    const=default_mute_cmd,
     nargs='?',
     choices=['status', 'toggle'])
 
@@ -470,7 +470,6 @@ subparser_cmd.add_argument(
     type=str.lower,
     action='store',
     default=default_source_cmd,
-    const=default_source_cmd,
     nargs='?',
     choices=['status',
              'bluetooth',
@@ -493,7 +492,6 @@ subparser_cmd.add_argument(
     type=str.lower,
     action='store',
     default=default_mode_cmd,
-    const=default_mode_cmd,
     nargs='?',
     choices=['status',
              'dolby',
@@ -507,8 +505,9 @@ subparser_cmd.add_argument(
 parser.set_default_subparser(default_subparser)
 args = parser.parse_args()
 if args.cmd is None or args.action is None:
-            print(Denon.errors['1'])
-            sys.exit(1)
+            print(Denon.errors[1])
+            parser.print_help()
+            sys.exit(2)
 
 # Initialize and Run Controller                                          {{{1
 controller = Denon(args)
