@@ -24,22 +24,29 @@ default_ip = ""
 Command List:
 
 ```
-	power [-h] (status, on, off, toggle)
-	volume [-h] (status, up, down, [0-90])
-	mute [-h] (status, toggle)
-	source [-h] status
-	            bluetooth
-		    tuner
-		    aux
-		    iradio
-		    mplayer
-		    game
-		    dvd
-		    bluray
-		    favorites
-		    siriusxm
-		    pandora
-		    ipod
+    power [-h] (status, on, off, toggle)
+    volume [-h] (status, up, down, [0-90])
+    mute [-h] (status, toggle)
+    source [-h] status
+                bluetooth
+                tuner
+                aux
+                iradio
+                mplayer
+                game
+                dvd
+                bluray
+                favorites
+                siriusxm
+                pandora
+                ipod
+    mode [-h] status
+              dolby
+              stereo
+              mstereo
+              direct
+              rock
+              jazz
 ```
 
 How to use:
