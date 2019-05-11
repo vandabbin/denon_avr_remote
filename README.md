@@ -5,8 +5,7 @@ This script has been tested with Denon AVR-S710W and may not be compatible with 
 
 If you test it with another receiver and it works let me know!
 
-This is a very early version and it doesn't handle the connection as efficiently as I would like.
-I plan to improve this in the future.
+This is a very early version and may contain bugs.
 It is also not fully featured yet.
 
 This script allows you to control a Denon Audio Video Receiver from the command line.
